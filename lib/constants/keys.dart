@@ -1,5 +1,3 @@
-import 'package:flutterfire_ui/auth.dart';
-
 class Keys {
   Keys._();
   static const kGoogleAppId =
@@ -18,10 +16,3 @@ class Keys {
   static const content = "content";
   static const type = "type";
 }
-
-const providerConfigs = <ProviderConfiguration>[
-  EmailProviderConfiguration(),
-  GoogleProviderConfiguration(
-    clientId: Keys.kGoogleAppId,
-  ),
-];

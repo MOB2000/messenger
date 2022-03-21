@@ -19,8 +19,6 @@ import 'package:messenger/providers/setting_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// TODO: put images folder into assets folder
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();

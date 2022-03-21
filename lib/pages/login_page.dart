@@ -1,0 +1,87 @@
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:messenger/constants/colors.dart';
+import 'package:messenger/constants/strings.dart';
+import 'package:messenger/pages/home_page.dart';
+import 'package:messenger/providers/auth_provider.dart';
+import 'package:messenger/widgets/loading_view.dart';
+import 'package:provider/provider.dart';
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
+
+  @override
+  LoginPageState createState() => LoginPageState();
+}
+
+class LoginPageState extends State<LoginPage> {
+  @override
+  Widget build(BuildContext context) {
+    AuthProvider authProvider = Provider.of<AuthProvider>(context);
+    switch (authProvider.status) {
+      case Status.authenticateError:
+        Fluttertoast.showToast(msg: "Sign in fail");
+        break;
+      case Status.authenticateCanceled:
+        Fluttertoast.showToast(msg: "Sign in canceled");
+        break;
+      case Status.authenticated:
+        Fluttertoast.showToast(msg: "Sign in success");
+        break;
+      default:
+        break;
+    }
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          AppConstants.loginTitle,
+          style: TextStyle(color: ColorConstants.kPrimaryColor),
+        ),
+        centerTitle: true,
+      ),
+      body: Stack(
+        children: <Widget>[
+          Center(
+            child: TextButton(
+              onPressed: () async {
+                bool isSuccess = await authProvider.handleSignIn();
+                if (isSuccess) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HomePage(),
+                    ),
+                  );
+                }
+              },
+              child: const Text(
+                'Sign in with Google',
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                  (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.pressed)) {
+                      return const Color(0xffdd4b39).withOpacity(0.8);
+                    }
+                    return const Color(0xffdd4b39);
+                  },
+                ),
+                splashFactory: NoSplash.splashFactory,
+                padding: MaterialStateProperty.all<EdgeInsets>(
+                  const EdgeInsets.fromLTRB(30, 15, 30, 15),
+                ),
+              ),
+            ),
+          ),
+          // Loading
+          Positioned(
+            child: authProvider.status == Status.authenticating
+                ? const LoadingView()
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:messenger/constants/keys.dart';
-import 'package:messenger/models/message_chat.dart';
+import 'package:messenger/models/message.dart';
+import 'package:messenger/models/message_type.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatProvider {
@@ -11,10 +12,11 @@ class ChatProvider {
   final FirebaseFirestore firebaseFirestore;
   final FirebaseStorage firebaseStorage;
 
-  ChatProvider(
-      {required this.firebaseFirestore,
-      required this.prefs,
-      required this.firebaseStorage});
+  ChatProvider({
+    required this.firebaseFirestore,
+    required this.prefs,
+    required this.firebaseStorage,
+  });
 
   String? getPref(String key) {
     return prefs.getString(key);
@@ -44,7 +46,7 @@ class ChatProvider {
         .snapshots();
   }
 
-  void sendMessage(String content, TypeMessage type, String groupChatId,
+  void sendMessage(String content, MessageType type, String groupChatId,
       String currentUserId, String peerId) {
     DocumentReference documentReference = firebaseFirestore
         .collection(Keys.pathMessageCollection)
@@ -52,7 +54,7 @@ class ChatProvider {
         .collection(groupChatId)
         .doc(DateTime.now().millisecondsSinceEpoch.toString());
 
-    MessageChat messageChat = MessageChat(
+    Message messageChat = Message(
       idFrom: currentUserId,
       idTo: peerId,
       timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -63,14 +65,8 @@ class ChatProvider {
     FirebaseFirestore.instance.runTransaction((transaction) async {
       transaction.set(
         documentReference,
-        messageChat.toJson(),
+        messageChat.toMap(),
       );
     });
   }
-}
-
-enum TypeMessage {
-  text,
-  image,
-  sticker,
 }

@@ -9,7 +9,10 @@ class HomeProvider {
   });
 
   Future<void> updateDataFirestore(
-      String collectionPath, String path, Map<String, String> dataNeedUpdate) {
+    String collectionPath,
+    String path,
+    Map<String, String> dataNeedUpdate,
+  ) {
     return firebaseFirestore
         .collection(collectionPath)
         .doc(path)
@@ -17,7 +20,10 @@ class HomeProvider {
   }
 
   Stream<QuerySnapshot> getStreamFireStore(
-      String pathCollection, int limit, String? textSearch) {
+    String pathCollection,
+    int limit,
+    String? textSearch,
+  ) {
     if (textSearch?.isNotEmpty == true) {
       return firebaseFirestore
           .collection(pathCollection)

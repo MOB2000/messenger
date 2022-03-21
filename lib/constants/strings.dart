@@ -1,13 +1,28 @@
-class AppConstants {
-  static const appTitle = "Messenger";
-  static const loginTitle = "Login";
-  static const homeTitle = "Home";
-  static const settingsTitle = "Settings";
-  static const fullPhotoTitle = "Full Photo";
-}
-
-const kMessenger = 'Messenger';
-const kCancel = 'Cancel';
-const kDelete = 'Delete';
-
-// TODO: remove class
+const String kLogin = "Login";
+const String kHome = "Home";
+const String kFullPhoto = "Full Photo";
+const String kMessenger = 'Messenger';
+const String kCancel = 'Cancel';
+const String kDelete = 'Delete';
+const String kSettings = 'Settings';
+const String kUpdate = 'Update';
+const String kNickname = 'Nickname';
+const String kSweetie = 'Sweetie';
+const String kYes = 'Yes';
+const String kExitApp = 'Exit App';
+const String kAreYouSureToExitApp = 'Are you sure to exit app?';
+const String kNoUsers = 'No Users';
+const String kSearchNickname =
+    'Search nickname (you have to type exactly string)';
+const String kAboutMe = 'About me';
+const String kFun = 'Fun, like travel and play PES...';
+const String kSignInWithGoogle = 'Sign in with Google';
+const String kSignInFail = 'Sign in fail';
+const String kSignInCanceled = 'Sign in canceled';
+const String kSignInSuccess = 'Sign in success';
+const String kLogout = 'Log out';
+const String kUploadSuccess = 'Upload success';
+const String kUpdateSuccess = 'Update success';
+const String kNothingToSend = 'Nothing to send';
+const String kStartSendMessages = 'Start Send Messages';
+const String kTypeYourMessage = 'Type your message...';

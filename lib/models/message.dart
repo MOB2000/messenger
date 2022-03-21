@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:messenger/constants/keys.dart';
-import 'package:messenger/providers/chat_provider.dart';
+import 'package:messenger/models/message_type.dart';
 
-class MessageChat {
+class Message {
   String idFrom;
   String idTo;
   String timestamp;
   String content;
-  TypeMessage type;
+  MessageType type;
 
-  MessageChat({
+  Message({
     required this.idFrom,
     required this.idTo,
     required this.timestamp,
@@ -17,8 +17,8 @@ class MessageChat {
     required this.type,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
       Keys.idFrom: idFrom,
       Keys.idTo: idTo,
       Keys.timestamp: timestamp,
@@ -27,13 +27,16 @@ class MessageChat {
     };
   }
 
-  factory MessageChat.fromDocument(DocumentSnapshot doc) {
+  // TODO: replace DocumentSnapshot with Map<String, dynamic>
+  factory Message.fromDocument(DocumentSnapshot doc) {
     String idFrom = doc.get(Keys.idFrom);
     String idTo = doc.get(Keys.idTo);
     String timestamp = doc.get(Keys.timestamp);
     String content = doc.get(Keys.content);
-    TypeMessage type = doc.get(Keys.type);
-    return MessageChat(
+    // TODO: check how saved in firestore
+    MessageType type = doc.get(Keys.type);
+
+    return Message(
       idFrom: idFrom,
       idTo: idTo,
       timestamp: timestamp,

@@ -6,7 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:messenger/constants/colors.dart';
 import 'package:messenger/constants/strings.dart';
-import 'package:messenger/pages/splash_page.dart';
+import 'package:messenger/pages/chat_screen.dart';
+import 'package:messenger/pages/full_photo_screen.dart';
+import 'package:messenger/pages/home_screen.dart';
+import 'package:messenger/pages/login_screen.dart';
+import 'package:messenger/pages/settings_screen.dart';
+import 'package:messenger/pages/splash_screen.dart';
 import 'package:messenger/providers/auth_provider.dart';
 import 'package:messenger/providers/chat_provider.dart';
 import 'package:messenger/providers/home_provider.dart';
@@ -14,11 +19,17 @@ import 'package:messenger/providers/setting_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// TODO: put images folder into assets folder
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  runApp(MyApp(prefs: prefs));
+  runApp(
+    MyApp(
+      prefs: prefs,
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -65,11 +76,19 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: AppConstants.appTitle,
+        title: kMessenger,
         theme: ThemeData(
-          primaryColor: ColorConstants.kThemeColor,
+          primaryColor: kThemeColor,
         ),
-        home: const SplashPage(),
+        initialRoute: SplashScreen.routeName,
+        routes: {
+          SplashScreen.routeName: (context) => const SplashScreen(),
+          LoginScreen.routeName: (context) => const LoginScreen(),
+          HomeScreen.routeName: (context) => const HomeScreen(),
+          ChatScreen.routeName: (context) => const ChatScreen(),
+          FullPhotoScreen.routeName: (context) => const FullPhotoScreen(),
+          SettingsScreen.routeName: (context) => const SettingsScreen(),
+        },
       ),
     );
   }

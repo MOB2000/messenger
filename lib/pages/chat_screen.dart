@@ -7,26 +7,32 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:messenger/constants/assets.dart';
 import 'package:messenger/constants/colors.dart';
 import 'package:messenger/constants/keys.dart';
-import 'package:messenger/models/message_chat.dart';
-import 'package:messenger/pages/full_photo_page.dart';
-import 'package:messenger/pages/login_page.dart';
+import 'package:messenger/constants/strings.dart';
+import 'package:messenger/models/chat_page_arguments.dart';
+import 'package:messenger/models/message.dart';
+import 'package:messenger/models/message_type.dart';
+import 'package:messenger/pages/full_photo_screen.dart';
+import 'package:messenger/pages/login_screen.dart';
 import 'package:messenger/providers/auth_provider.dart';
 import 'package:messenger/providers/chat_provider.dart';
-import 'package:messenger/widgets/loading_view.dart';
+import 'package:messenger/widgets/mime_widget.dart';
 import 'package:provider/provider.dart';
 
-class ChatPage extends StatefulWidget {
-  const ChatPage({Key? key, required this.arguments}) : super(key: key);
+class ChatScreen extends StatefulWidget {
+  static const routeName = 'ChatScreen';
 
-  final ChatPageArguments arguments;
+  const ChatScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  ChatPageState createState() => ChatPageState();
+  ChatScreenState createState() => ChatScreenState();
 }
 
-class ChatPageState extends State<ChatPage> {
+class ChatScreenState extends State<ChatScreen> {
   late String currentUserId;
 
   List<QueryDocumentSnapshot> listMessage = [];
@@ -49,8 +55,8 @@ class ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    chatProvider = context.read<ChatProvider>();
-    authProvider = context.read<AuthProvider>();
+    chatProvider = Provider.of<ChatProvider>(context);
+    authProvider = Provider.of<AuthProvider>(context);
 
     focusNode.addListener(onFocusChange);
     listScrollController.addListener(_scrollListener);
@@ -70,7 +76,6 @@ class ChatPageState extends State<ChatPage> {
 
   void onFocusChange() {
     if (focusNode.hasFocus) {
-      // Hide sticker when keyboard appear
       setState(() {
         isShowSticker = false;
       });
@@ -81,12 +86,9 @@ class ChatPageState extends State<ChatPage> {
     if (authProvider.getUserFirebaseId()?.isNotEmpty == true) {
       currentUserId = authProvider.getUserFirebaseId()!;
     } else {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-        (Route<dynamic> route) => false,
-      );
+      Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
     }
-    String peerId = widget.arguments.peerId;
+    String peerId = arguments.peerId;
     if (currentUserId.compareTo(peerId) > 0) {
       groupChatId = '$currentUserId-$peerId';
     } else {
@@ -116,7 +118,6 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void getSticker() {
-    // Hide keyboard when sticker appear
     focusNode.unfocus();
     setState(() {
       isShowSticker = !isShowSticker;
@@ -131,7 +132,7 @@ class ChatPageState extends State<ChatPage> {
       imageUrl = await snapshot.ref.getDownloadURL();
       setState(() {
         isLoading = false;
-        onSendMessage(imageUrl, TypeMessage.image);
+        onSendMessage(imageUrl, MessageType.image);
       });
     } on FirebaseException catch (e) {
       setState(() {
@@ -141,44 +142,39 @@ class ChatPageState extends State<ChatPage> {
     }
   }
 
-  void onSendMessage(String content, TypeMessage type) {
+  void onSendMessage(String content, MessageType type) {
     if (content.trim().isNotEmpty) {
       textEditingController.clear();
       chatProvider.sendMessage(
-          content, type, groupChatId, currentUserId, widget.arguments.peerId);
+          content, type, groupChatId, currentUserId, arguments.peerId);
       listScrollController.animateTo(0,
           duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
-      Fluttertoast.showToast(
-          msg: 'Nothing to send', backgroundColor: ColorConstants.kGreyColor);
+      Fluttertoast.showToast(msg: kNothingToSend, backgroundColor: kGreyColor);
     }
   }
 
   Widget buildItem(int index, DocumentSnapshot? document) {
     if (document != null) {
-      MessageChat messageChat = MessageChat.fromDocument(document);
+      Message messageChat = Message.fromDocument(document);
       if (messageChat.idFrom == currentUserId) {
-        // Right (my message)
         return Row(
           children: <Widget>[
-            messageChat.type == TypeMessage.text
-                // Text
+            messageChat.type == MessageType.text
                 ? Container(
                     child: Text(
                       messageChat.content,
-                      style:
-                          const TextStyle(color: ColorConstants.kPrimaryColor),
+                      style: const TextStyle(color: kPrimaryColor),
                     ),
                     padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
                     width: 200,
                     decoration: BoxDecoration(
-                        color: ColorConstants.kGreyColor2,
+                        color: kGreyColor2,
                         borderRadius: BorderRadius.circular(8)),
                     margin: EdgeInsets.only(
                         bottom: isLastMessageRight(index) ? 20 : 10, right: 10),
                   )
-                : messageChat.type == TypeMessage.image
-                    // Image
+                : messageChat.type == MessageType.image
                     ? Container(
                         child: OutlinedButton(
                           child: Material(
@@ -190,7 +186,7 @@ class ChatPageState extends State<ChatPage> {
                                 if (loadingProgress == null) return child;
                                 return Container(
                                   decoration: const BoxDecoration(
-                                    color: ColorConstants.kGreyColor2,
+                                    color: kGreyColor2,
                                     borderRadius: BorderRadius.all(
                                       Radius.circular(8),
                                     ),
@@ -199,7 +195,7 @@ class ChatPageState extends State<ChatPage> {
                                   height: 200,
                                   child: Center(
                                     child: CircularProgressIndicator(
-                                      color: ColorConstants.kThemeColor,
+                                      color: kThemeColor,
                                       value:
                                           loadingProgress.expectedTotalBytes !=
                                                   null
@@ -215,7 +211,7 @@ class ChatPageState extends State<ChatPage> {
                               errorBuilder: (context, object, stackTrace) {
                                 return Material(
                                   child: Image.asset(
-                                    'images/img_not_available.jpeg',
+                                    Assets.kImgNotAvailable,
                                     width: 200,
                                     height: 200,
                                     fit: BoxFit.cover,
@@ -235,13 +231,10 @@ class ChatPageState extends State<ChatPage> {
                             clipBehavior: Clip.hardEdge,
                           ),
                           onPressed: () {
-                            Navigator.push(
+                            Navigator.pushNamed(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => FullPhotoPage(
-                                  url: messageChat.content,
-                                ),
-                              ),
+                              FullPhotoScreen.routeName,
+                              arguments: messageChat.content,
                             );
                           },
                           style: ButtonStyle(
@@ -252,10 +245,9 @@ class ChatPageState extends State<ChatPage> {
                             bottom: isLastMessageRight(index) ? 20 : 10,
                             right: 10),
                       )
-                    // Sticker
                     : Container(
                         child: Image.asset(
-                          'images/${messageChat.content}.gif',
+                          Assets.getMimi(messageChat.content),
                           width: 100,
                           height: 100,
                           fit: BoxFit.cover,
@@ -268,7 +260,6 @@ class ChatPageState extends State<ChatPage> {
           mainAxisAlignment: MainAxisAlignment.end,
         );
       } else {
-        // Left (peer message)
         return Container(
           child: Column(
             children: <Widget>[
@@ -277,13 +268,13 @@ class ChatPageState extends State<ChatPage> {
                   isLastMessageLeft(index)
                       ? Material(
                           child: Image.network(
-                            widget.arguments.peerAvatar,
+                            arguments.peerAvatar,
                             loadingBuilder: (BuildContext context, Widget child,
                                 ImageChunkEvent? loadingProgress) {
                               if (loadingProgress == null) return child;
                               return Center(
                                 child: CircularProgressIndicator(
-                                  color: ColorConstants.kThemeColor,
+                                  color: kThemeColor,
                                   value: loadingProgress.expectedTotalBytes !=
                                           null
                                       ? loadingProgress.cumulativeBytesLoaded /
@@ -296,7 +287,7 @@ class ChatPageState extends State<ChatPage> {
                               return const Icon(
                                 Icons.account_circle,
                                 size: 35,
-                                color: ColorConstants.kGreyColor,
+                                color: kGreyColor,
                               );
                             },
                             width: 35,
@@ -309,7 +300,7 @@ class ChatPageState extends State<ChatPage> {
                           clipBehavior: Clip.hardEdge,
                         )
                       : Container(width: 35),
-                  messageChat.type == TypeMessage.text
+                  messageChat.type == MessageType.text
                       ? Container(
                           child: Text(
                             messageChat.content,
@@ -318,11 +309,11 @@ class ChatPageState extends State<ChatPage> {
                           padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
                           width: 200,
                           decoration: BoxDecoration(
-                              color: ColorConstants.kPrimaryColor,
+                              color: kPrimaryColor,
                               borderRadius: BorderRadius.circular(8)),
                           margin: const EdgeInsets.only(left: 10),
                         )
-                      : messageChat.type == TypeMessage.image
+                      : messageChat.type == MessageType.image
                           ? Container(
                               child: TextButton(
                                 child: Material(
@@ -334,7 +325,7 @@ class ChatPageState extends State<ChatPage> {
                                       if (loadingProgress == null) return child;
                                       return Container(
                                         decoration: const BoxDecoration(
-                                          color: ColorConstants.kGreyColor2,
+                                          color: kGreyColor2,
                                           borderRadius: BorderRadius.all(
                                             Radius.circular(8),
                                           ),
@@ -343,7 +334,7 @@ class ChatPageState extends State<ChatPage> {
                                         height: 200,
                                         child: Center(
                                           child: CircularProgressIndicator(
-                                            color: ColorConstants.kThemeColor,
+                                            color: kThemeColor,
                                             value: loadingProgress
                                                         .expectedTotalBytes !=
                                                     null
@@ -360,7 +351,7 @@ class ChatPageState extends State<ChatPage> {
                                         (context, object, stackTrace) =>
                                             Material(
                                       child: Image.asset(
-                                        'images/img_not_available.jpeg',
+                                        Assets.kImgNotAvailable,
                                         width: 200,
                                         height: 200,
                                         fit: BoxFit.cover,
@@ -379,12 +370,10 @@ class ChatPageState extends State<ChatPage> {
                                   clipBehavior: Clip.hardEdge,
                                 ),
                                 onPressed: () {
-                                  Navigator.push(
+                                  Navigator.pushNamed(
                                     context,
-                                    MaterialPageRoute(
-                                      builder: (context) => FullPhotoPage(
-                                          url: messageChat.content),
-                                    ),
+                                    FullPhotoScreen.routeName,
+                                    arguments: messageChat.content,
                                   );
                                 },
                                 style: ButtonStyle(
@@ -396,7 +385,7 @@ class ChatPageState extends State<ChatPage> {
                             )
                           : Container(
                               child: Image.asset(
-                                'images/${messageChat.content}.gif',
+                                Assets.getMimi(messageChat.content),
                                 width: 100,
                                 height: 100,
                                 fit: BoxFit.cover,
@@ -407,8 +396,6 @@ class ChatPageState extends State<ChatPage> {
                             ),
                 ],
               ),
-
-              // Time
               isLastMessageLeft(index)
                   ? Container(
                       child: Text(
@@ -416,7 +403,7 @@ class ChatPageState extends State<ChatPage> {
                             DateTime.fromMillisecondsSinceEpoch(
                                 int.parse(messageChat.timestamp))),
                         style: const TextStyle(
-                            color: ColorConstants.kGreyColor,
+                            color: kGreyColor,
                             fontSize: 12,
                             fontStyle: FontStyle.italic),
                       ),
@@ -472,34 +459,26 @@ class ChatPageState extends State<ChatPage> {
     return Future.value(false);
   }
 
+  late ChatPageArguments arguments;
+
   @override
   Widget build(BuildContext context) {
+    arguments = ModalRoute.of(context)!.settings.arguments as ChatPageArguments;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.arguments.peerNickname,
-          style: const TextStyle(color: ColorConstants.kPrimaryColor),
+          arguments.peerNickname,
+          style: const TextStyle(color: kPrimaryColor),
         ),
         centerTitle: true,
       ),
       body: WillPopScope(
-        child: Stack(
+        child: Column(
           children: <Widget>[
-            Column(
-              children: <Widget>[
-                // List of messages
-                buildListMessage(),
-
-                // Sticker
-                isShowSticker ? buildSticker() : const SizedBox.shrink(),
-
-                // Input content
-                buildInput(),
-              ],
-            ),
-
-            // Loading
-            buildLoading()
+            buildListMessage(),
+            isShowSticker ? buildSticker() : const SizedBox.shrink(),
+            buildInput(),
           ],
         ),
         onWillPop: onBackPress,
@@ -509,122 +488,17 @@ class ChatPageState extends State<ChatPage> {
 
   Widget buildSticker() {
     return Expanded(
-      child: Container(
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                TextButton(
-                  onPressed: () => onSendMessage('mimi1', TypeMessage.sticker),
-                  child: Image.asset(
-                    'images/mimi1.gif',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi2', TypeMessage.sticker),
-                  child: Image.asset(
-                    'images/mimi2.gif',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi3', TypeMessage.sticker),
-                  child: Image.asset(
-                    'images/mimi3.gif',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              ],
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            ),
-            Row(
-              children: <Widget>[
-                TextButton(
-                  onPressed: () => onSendMessage('mimi4', TypeMessage.sticker),
-                  child: Image.asset(
-                    'images/mimi4.gif',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi5', TypeMessage.sticker),
-                  child: Image.asset(
-                    'images/mimi5.gif',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi6', TypeMessage.sticker),
-                  child: Image.asset(
-                    'images/mimi6.gif',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              ],
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            ),
-            Row(
-              children: <Widget>[
-                TextButton(
-                  onPressed: () => onSendMessage('mimi7', TypeMessage.sticker),
-                  child: Image.asset(
-                    'images/mimi7.gif',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi8', TypeMessage.sticker),
-                  child: Image.asset(
-                    'images/mimi8.gif',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi9', TypeMessage.sticker),
-                  child: Image.asset(
-                    'images/mimi9.gif',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              ],
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: mimes
+            .map(
+              (mimi) => MimeWidget(
+                mimi: mimi,
+                onPressed: onSendMessage,
+              ),
             )
-          ],
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        ),
-        decoration: const BoxDecoration(
-          border: Border(
-              top: BorderSide(color: ColorConstants.kGreyColor2, width: 0.5)),
-          color: Colors.white,
-        ),
-        padding: const EdgeInsets.all(5),
-        height: 180,
+            .toList(),
       ),
-    );
-  }
-
-  Widget buildLoading() {
-    return Positioned(
-      child: isLoading ? const LoadingView() : const SizedBox.shrink(),
     );
   }
 
@@ -632,14 +506,13 @@ class ChatPageState extends State<ChatPage> {
     return Container(
       child: Row(
         children: <Widget>[
-          // Button send image
           Material(
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 1),
               child: IconButton(
                 icon: const Icon(Icons.image),
                 onPressed: getImage,
-                color: ColorConstants.kPrimaryColor,
+                color: kPrimaryColor,
               ),
             ),
             color: Colors.white,
@@ -650,38 +523,33 @@ class ChatPageState extends State<ChatPage> {
               child: IconButton(
                 icon: const Icon(Icons.face),
                 onPressed: getSticker,
-                color: ColorConstants.kPrimaryColor,
+                color: kPrimaryColor,
               ),
             ),
             color: Colors.white,
           ),
-
-          // Edit text
           Flexible(
             child: TextField(
               onSubmitted: (value) {
-                onSendMessage(textEditingController.text, TypeMessage.text);
+                onSendMessage(textEditingController.text, MessageType.text);
               },
-              style: const TextStyle(
-                  color: ColorConstants.kPrimaryColor, fontSize: 15),
+              style: const TextStyle(color: kPrimaryColor, fontSize: 15),
               controller: textEditingController,
               decoration: const InputDecoration.collapsed(
-                hintText: 'Type your message...',
-                hintStyle: TextStyle(color: ColorConstants.kGreyColor),
+                hintText: kTypeYourMessage,
+                hintStyle: TextStyle(color: kGreyColor),
               ),
               focusNode: focusNode,
             ),
           ),
-
-          // Button send message
           Material(
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
               child: IconButton(
                 icon: const Icon(Icons.send),
                 onPressed: () =>
-                    onSendMessage(textEditingController.text, TypeMessage.text),
-                color: ColorConstants.kPrimaryColor,
+                    onSendMessage(textEditingController.text, MessageType.text),
+                color: kPrimaryColor,
               ),
             ),
             color: Colors.white,
@@ -691,8 +559,7 @@ class ChatPageState extends State<ChatPage> {
       width: double.infinity,
       height: 50,
       decoration: const BoxDecoration(
-          border: Border(
-              top: BorderSide(color: ColorConstants.kGreyColor2, width: 0.5)),
+          border: Border(top: BorderSide(color: kGreyColor2, width: 0.5)),
           color: Colors.white),
     );
   }
@@ -716,12 +583,12 @@ class ChatPageState extends State<ChatPage> {
                       controller: listScrollController,
                     );
                   } else {
-                    return const Center(child: Text("No message here yet..."));
+                    return const Center(child: Text(kStartSendMessages));
                   }
                 } else {
                   return const Center(
                     child: CircularProgressIndicator(
-                      color: ColorConstants.kThemeColor,
+                      color: kThemeColor,
                     ),
                   );
                 }
@@ -729,20 +596,9 @@ class ChatPageState extends State<ChatPage> {
             )
           : const Center(
               child: CircularProgressIndicator(
-                color: ColorConstants.kThemeColor,
+                color: kThemeColor,
               ),
             ),
     );
   }
-}
-
-class ChatPageArguments {
-  final String peerId;
-  final String peerAvatar;
-  final String peerNickname;
-
-  ChatPageArguments(
-      {required this.peerId,
-      required this.peerAvatar,
-      required this.peerNickname});
 }

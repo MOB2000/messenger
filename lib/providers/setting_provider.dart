@@ -15,8 +15,8 @@ class SettingProvider {
     required this.firebaseStorage,
   });
 
-  String? getPref(String key) {
-    return prefs.getString(key);
+  String getPref(String key) {
+    return prefs.getString(key) ?? '';
   }
 
   Future<bool> setPref(String key, String value) async {
@@ -29,7 +29,11 @@ class SettingProvider {
     return uploadTask;
   }
 
-  Future<void> updateDataFirestore(String collectionPath, String path, Map<String, String> dataNeedUpdate) {
-    return firebaseFirestore.collection(collectionPath).doc(path).update(dataNeedUpdate);
+  Future<void> updateDataFirestore(
+      String collectionPath, String path, Map<String, dynamic> dataNeedUpdate) {
+    return firebaseFirestore
+        .collection(collectionPath)
+        .doc(path)
+        .update(dataNeedUpdate);
   }
 }

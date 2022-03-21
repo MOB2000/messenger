@@ -2,31 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:messenger/constants/colors.dart';
 import 'package:messenger/constants/strings.dart';
-import 'package:messenger/pages/home_page.dart';
+import 'package:messenger/models/auth_status.dart';
+import 'package:messenger/pages/home_screen.dart';
 import 'package:messenger/providers/auth_provider.dart';
 import 'package:messenger/widgets/loading_view.dart';
 import 'package:provider/provider.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+class LoginScreen extends StatefulWidget {
+  static const routeName = 'LoginScreen';
+
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  LoginPageState createState() => LoginPageState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class LoginPageState extends State<LoginPage> {
+class LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     AuthProvider authProvider = Provider.of<AuthProvider>(context);
     switch (authProvider.status) {
-      case Status.authenticateError:
-        Fluttertoast.showToast(msg: "Sign in fail");
+      case AuthStatus.authenticateError:
+        Fluttertoast.showToast(msg: kSignInFail);
         break;
-      case Status.authenticateCanceled:
-        Fluttertoast.showToast(msg: "Sign in canceled");
+      case AuthStatus.authenticateCanceled:
+        Fluttertoast.showToast(msg: kSignInCanceled);
         break;
-      case Status.authenticated:
-        Fluttertoast.showToast(msg: "Sign in success");
+      case AuthStatus.authenticated:
+        Fluttertoast.showToast(msg: kSignInSuccess);
         break;
       default:
         break;
@@ -34,8 +37,8 @@ class LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          AppConstants.loginTitle,
-          style: TextStyle(color: ColorConstants.kPrimaryColor),
+          kLogin,
+          style: TextStyle(color: kPrimaryColor),
         ),
         centerTitle: true,
       ),
@@ -46,16 +49,14 @@ class LoginPageState extends State<LoginPage> {
               onPressed: () async {
                 bool isSuccess = await authProvider.handleSignIn();
                 if (isSuccess) {
-                  Navigator.pushReplacement(
+                  Navigator.pushReplacementNamed(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const HomePage(),
-                    ),
+                    HomeScreen.routeName,
                   );
                 }
               },
               child: const Text(
-                'Sign in with Google',
+                kSignInWithGoogle,
                 style: TextStyle(fontSize: 16, color: Colors.white),
               ),
               style: ButtonStyle(
@@ -74,9 +75,8 @@ class LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-          // Loading
           Positioned(
-            child: authProvider.status == Status.authenticating
+            child: authProvider.status == AuthStatus.authenticating
                 ? const LoadingView()
                 : const SizedBox.shrink(),
           ),

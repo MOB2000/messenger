@@ -3,18 +3,20 @@ import 'package:messenger/constants/colors.dart';
 import 'package:messenger/constants/strings.dart';
 import 'package:photo_view/photo_view.dart';
 
-class FullPhotoPage extends StatelessWidget {
-  final String url;
+class FullPhotoScreen extends StatelessWidget {
+  static const routeName = 'FullPhotoScreen';
 
-  const FullPhotoPage({Key? key, required this.url}) : super(key: key);
+  const FullPhotoScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final url = ModalRoute.of(context)!.settings.arguments as String;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          AppConstants.fullPhotoTitle,
-          style: TextStyle(color: ColorConstants.kPrimaryColor),
+          kFullPhoto,
+          style: TextStyle(color: kPrimaryColor),
         ),
         centerTitle: true,
       ),

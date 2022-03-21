@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class PopupChoices {
+class PopupChoice {
   String title;
   IconData icon;
 
-  PopupChoices({
+  PopupChoice({
     required this.title,
     required this.icon,
   });

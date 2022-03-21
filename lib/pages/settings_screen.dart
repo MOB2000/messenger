@@ -9,21 +9,23 @@ import 'package:image_picker/image_picker.dart';
 import 'package:messenger/constants/colors.dart';
 import 'package:messenger/constants/keys.dart';
 import 'package:messenger/constants/strings.dart';
-import 'package:messenger/models/user_chat.dart';
+import 'package:messenger/models/custom_user.dart';
 import 'package:messenger/providers/setting_provider.dart';
 import 'package:messenger/widgets/loading_view.dart';
 import 'package:provider/provider.dart';
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+class SettingsScreen extends StatelessWidget {
+  static const routeName = 'SettingsScreen';
+
+  const SettingsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          AppConstants.settingsTitle,
-          style: TextStyle(color: ColorConstants.kPrimaryColor),
+          kSettings,
+          style: TextStyle(color: kPrimaryColor),
         ),
         centerTitle: true,
       ),
@@ -58,16 +60,16 @@ class SettingsPageStateState extends State<SettingsPageState> {
   @override
   void initState() {
     super.initState();
-    settingProvider = context.read<SettingProvider>();
+    settingProvider = Provider.of<SettingProvider>(context);
     readLocal();
   }
 
   void readLocal() {
     setState(() {
-      id = settingProvider.getPref(Keys.id) ?? "";
-      nickname = settingProvider.getPref(Keys.nickname) ?? "";
-      aboutMe = settingProvider.getPref(Keys.aboutMe) ?? "";
-      photoUrl = settingProvider.getPref(Keys.photoUrl) ?? "";
+      id = settingProvider.getPref(Keys.id);
+      nickname = settingProvider.getPref(Keys.nickname);
+      aboutMe = settingProvider.getPref(Keys.aboutMe);
+      photoUrl = settingProvider.getPref(Keys.photoUrl);
     });
 
     controllerNickname = TextEditingController(text: nickname);
@@ -101,20 +103,20 @@ class SettingsPageStateState extends State<SettingsPageState> {
     try {
       TaskSnapshot snapshot = await uploadTask;
       photoUrl = await snapshot.ref.getDownloadURL();
-      UserChat updateInfo = UserChat(
+      CustomUser updateInfo = CustomUser(
         id: id,
         photoUrl: photoUrl,
         nickname: nickname,
         aboutMe: aboutMe,
       );
       settingProvider
-          .updateDataFirestore(Keys.pathUserCollection, id, updateInfo.toJson())
+          .updateDataFirestore(Keys.pathUserCollection, id, updateInfo.toMap())
           .then((data) async {
         await settingProvider.setPref(Keys.photoUrl, photoUrl);
         setState(() {
           isLoading = false;
         });
-        Fluttertoast.showToast(msg: "Upload success");
+        Fluttertoast.showToast(msg: kUploadSuccess);
       }).catchError((err) {
         setState(() {
           isLoading = false;
@@ -136,14 +138,14 @@ class SettingsPageStateState extends State<SettingsPageState> {
     setState(() {
       isLoading = true;
     });
-    UserChat updateInfo = UserChat(
+    CustomUser updateInfo = CustomUser(
       id: id,
       photoUrl: photoUrl,
       nickname: nickname,
       aboutMe: aboutMe,
     );
     settingProvider
-        .updateDataFirestore(Keys.pathUserCollection, id, updateInfo.toJson())
+        .updateDataFirestore(Keys.pathUserCollection, id, updateInfo.toMap())
         .then((data) async {
       await settingProvider.setPref(Keys.nickname, nickname);
       await settingProvider.setPref(Keys.aboutMe, aboutMe);
@@ -153,7 +155,7 @@ class SettingsPageStateState extends State<SettingsPageState> {
         isLoading = false;
       });
 
-      Fluttertoast.showToast(msg: "Update success");
+      Fluttertoast.showToast(msg: kUpdateSuccess);
     }).catchError((err) {
       setState(() {
         isLoading = false;
@@ -171,7 +173,6 @@ class SettingsPageStateState extends State<SettingsPageState> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // Avatar
               CupertinoButton(
                 onPressed: getImage,
                 child: Container(
@@ -189,7 +190,7 @@ class SettingsPageStateState extends State<SettingsPageState> {
                                   return const Icon(
                                     Icons.account_circle,
                                     size: 90,
-                                    color: ColorConstants.kGreyColor,
+                                    color: kGreyColor,
                                   );
                                 },
                                 loadingBuilder: (BuildContext context,
@@ -201,7 +202,7 @@ class SettingsPageStateState extends State<SettingsPageState> {
                                     height: 90,
                                     child: Center(
                                       child: CircularProgressIndicator(
-                                        color: ColorConstants.kThemeColor,
+                                        color: kThemeColor,
                                         value: loadingProgress
                                                     .expectedTotalBytes !=
                                                 null
@@ -219,7 +220,7 @@ class SettingsPageStateState extends State<SettingsPageState> {
                           : const Icon(
                               Icons.account_circle,
                               size: 90,
-                              color: ColorConstants.kGreyColor,
+                              color: kGreyColor,
                             )
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(45),
@@ -232,31 +233,27 @@ class SettingsPageStateState extends State<SettingsPageState> {
                         ),
                 ),
               ),
-
-              // Input
               Column(
                 children: <Widget>[
-                  // Username
                   Container(
                     child: const Text(
-                      'Nickname',
+                      kNickname,
                       style: TextStyle(
                           fontStyle: FontStyle.italic,
                           fontWeight: FontWeight.bold,
-                          color: ColorConstants.kPrimaryColor),
+                          color: kPrimaryColor),
                     ),
                     margin: const EdgeInsets.only(left: 10, bottom: 5, top: 10),
                   ),
                   Container(
                     child: Theme(
                       data: Theme.of(context)
-                          .copyWith(primaryColor: ColorConstants.kPrimaryColor),
+                          .copyWith(primaryColor: kPrimaryColor),
                       child: TextField(
                         decoration: const InputDecoration(
-                          hintText: 'Sweetie',
+                          hintText: kSweetie,
                           contentPadding: EdgeInsets.all(5),
-                          hintStyle:
-                              TextStyle(color: ColorConstants.kGreyColor),
+                          hintStyle: TextStyle(color: kGreyColor),
                         ),
                         controller: controllerNickname,
                         onChanged: (value) {
@@ -267,28 +264,25 @@ class SettingsPageStateState extends State<SettingsPageState> {
                     ),
                     margin: const EdgeInsets.only(left: 30, right: 30),
                   ),
-
-                  // About me
                   Container(
                     child: const Text(
-                      'About me',
+                      kAboutMe,
                       style: TextStyle(
                           fontStyle: FontStyle.italic,
                           fontWeight: FontWeight.bold,
-                          color: ColorConstants.kPrimaryColor),
+                          color: kPrimaryColor),
                     ),
                     margin: const EdgeInsets.only(left: 10, top: 30, bottom: 5),
                   ),
                   Container(
                     child: Theme(
                       data: Theme.of(context)
-                          .copyWith(primaryColor: ColorConstants.kPrimaryColor),
+                          .copyWith(primaryColor: kPrimaryColor),
                       child: TextField(
                         decoration: const InputDecoration(
-                          hintText: 'Fun, like travel and play PES...',
+                          hintText: kFun,
                           contentPadding: EdgeInsets.all(5),
-                          hintStyle:
-                              TextStyle(color: ColorConstants.kGreyColor),
+                          hintStyle: TextStyle(color: kGreyColor),
                         ),
                         controller: controllerAboutMe,
                         onChanged: (value) {
@@ -302,18 +296,16 @@ class SettingsPageStateState extends State<SettingsPageState> {
                 ],
                 crossAxisAlignment: CrossAxisAlignment.start,
               ),
-
-              // Button
               Container(
                 child: TextButton(
                   onPressed: handleUpdateData,
                   child: const Text(
-                    'Update',
+                    kUpdate,
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                        ColorConstants.kPrimaryColor),
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(kPrimaryColor),
                     padding: MaterialStateProperty.all<EdgeInsets>(
                       const EdgeInsets.fromLTRB(30, 10, 30, 10),
                     ),
@@ -325,8 +317,6 @@ class SettingsPageStateState extends State<SettingsPageState> {
           ),
           padding: const EdgeInsets.only(left: 15, right: 15),
         ),
-
-        // Loading
         Positioned(
             child: isLoading ? const LoadingView() : const SizedBox.shrink()),
       ],

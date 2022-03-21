@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:messenger/constants/assets.dart';
 import 'package:messenger/constants/colors.dart';
-import 'package:messenger/pages/home_page.dart';
-import 'package:messenger/pages/login_page.dart';
+import 'package:messenger/pages/home_screen.dart';
+import 'package:messenger/pages/login_screen.dart';
 import 'package:messenger/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
-class SplashPage extends StatefulWidget {
-  const SplashPage({Key? key}) : super(key: key);
+class SplashScreen extends StatefulWidget {
+  static const routeName = 'SplashScreen';
+
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
-  SplashPageState createState() => SplashPageState();
+  SplashScreenState createState() => SplashScreenState();
 }
 
-class SplashPageState extends State<SplashPage> {
+class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
@@ -23,39 +26,36 @@ class SplashPageState extends State<SplashPage> {
   }
 
   void checkSignedIn() async {
-    AuthProvider authProvider = context.read<AuthProvider>();
+    AuthProvider authProvider = Provider.of<AuthProvider>(context);
     bool isLoggedIn = await authProvider.isLoggedIn();
     if (isLoggedIn) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
+      Navigator.pushReplacementNamed(context, HomeScreen.routeName);
       return;
     }
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
+    Navigator.pushReplacementNamed(context, LoginScreen.routeName);
   }
 
   @override
   Widget build(BuildContext context) {
+    //TODO use mediaQuerySize
+    final mediaQuerySize = MediaQuery.of(context).size;
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
-              "images/app_icon.png",
+              Assets.kAppIcon,
               width: 200,
               height: 100,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             const SizedBox(
               width: 20,
               height: 20,
-              child:
-                  CircularProgressIndicator(color: ColorConstants.kThemeColor),
+              child: CircularProgressIndicator(
+                color: kThemeColor,
+              ),
             ),
           ],
         ),

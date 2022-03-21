@@ -3,16 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:messenger/constants/keys.dart';
-import 'package:messenger/models/user_chat.dart';
+import 'package:messenger/models/auth_status.dart';
+import 'package:messenger/models/custom_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-enum Status {
-  uninitialized,
-  authenticated,
-  authenticating,
-  authenticateError,
-  authenticateCanceled,
-}
 
 class AuthProvider extends ChangeNotifier {
   final GoogleSignIn googleSignIn;
@@ -20,9 +13,9 @@ class AuthProvider extends ChangeNotifier {
   final FirebaseFirestore firebaseFirestore;
   final SharedPreferences prefs;
 
-  Status _status = Status.uninitialized;
+  AuthStatus _status = AuthStatus.uninitialized;
 
-  Status get status => _status;
+  AuthStatus get status => _status;
 
   AuthProvider({
     required this.firebaseAuth,
@@ -45,7 +38,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> handleSignIn() async {
-    _status = Status.authenticating;
+    _status = AuthStatus.authenticating;
     notifyListeners();
 
     GoogleSignInAccount? googleUser = await googleSignIn.signIn();
@@ -77,38 +70,35 @@ class AuthProvider extends ChangeNotifier {
             Keys.chattingWith: null
           });
 
-          // Write data to local storage
           User? currentUser = firebaseUser;
           await prefs.setString(Keys.id, currentUser.uid);
           await prefs.setString(Keys.nickname, currentUser.displayName ?? "");
           await prefs.setString(Keys.photoUrl, currentUser.photoURL ?? "");
         } else {
-          // Already sign up, just get data from firestore
           DocumentSnapshot documentSnapshot = documents[0];
-          final userChat = UserChat.fromDocument(documentSnapshot);
-          // Write data to local
+          final userChat = CustomUser.fromDocument(documentSnapshot);
           await prefs.setString(Keys.id, userChat.id);
           await prefs.setString(Keys.nickname, userChat.nickname);
           await prefs.setString(Keys.photoUrl, userChat.photoUrl);
           await prefs.setString(Keys.aboutMe, userChat.aboutMe);
         }
-        _status = Status.authenticated;
+        _status = AuthStatus.authenticated;
         notifyListeners();
         return true;
       } else {
-        _status = Status.authenticateError;
+        _status = AuthStatus.authenticateError;
         notifyListeners();
         return false;
       }
     } else {
-      _status = Status.authenticateCanceled;
+      _status = AuthStatus.authenticateCanceled;
       notifyListeners();
       return false;
     }
   }
 
   Future<void> handleSignOut() async {
-    _status = Status.uninitialized;
+    _status = AuthStatus.uninitialized;
     await firebaseAuth.signOut();
     await googleSignIn.disconnect();
     await googleSignIn.signOut();

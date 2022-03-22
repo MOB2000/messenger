@@ -1,11 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:messenger/constants/colors.dart';
-import 'package:messenger/constants/strings.dart';
-import 'package:messenger/models/auth_status.dart';
+import 'package:flutterfire_ui/auth.dart';
+import 'package:messenger/constants/assets.dart';
+import 'package:messenger/constants/configurations.dart';
 import 'package:messenger/pages/home_screen.dart';
 import 'package:messenger/providers/auth_provider.dart';
-import 'package:messenger/widgets/loading_view.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,67 +20,26 @@ class LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     AuthProvider authProvider = Provider.of<AuthProvider>(context);
-    switch (authProvider.status) {
-      case AuthStatus.authenticateError:
-        Fluttertoast.showToast(msg: kSignInFail);
-        break;
-      case AuthStatus.authenticateCanceled:
-        Fluttertoast.showToast(msg: kSignInCanceled);
-        break;
-      case AuthStatus.authenticated:
-        Fluttertoast.showToast(msg: kSignInSuccess);
-        break;
-      default:
-        break;
-    }
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          kLogin,
-          style: TextStyle(color: kPrimaryColor),
-        ),
-        centerTitle: true,
-      ),
-      body: Stack(
-        children: <Widget>[
-          Center(
-            child: TextButton(
-              onPressed: () async {
-                bool isSuccess = await authProvider.handleSignIn();
-                if (isSuccess) {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    HomeScreen.routeName,
-                  );
-                }
-              },
-              child: const Text(
-                kSignInWithGoogle,
-                style: TextStyle(fontSize: 16, color: Colors.white),
-              ),
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                  (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.pressed)) {
-                      return const Color(0xffdd4b39).withOpacity(0.8);
-                    }
-                    return const Color(0xffdd4b39);
-                  },
-                ),
-                splashFactory: NoSplash.splashFactory,
-                padding: MaterialStateProperty.all<EdgeInsets>(
-                  const EdgeInsets.fromLTRB(30, 15, 30, 15),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            child: authProvider.status == AuthStatus.authenticating
-                ? const LoadingView()
-                : const SizedBox.shrink(),
-          ),
-        ],
-      ),
+    //TODO: remove stream and add actions
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      initialData: FirebaseAuth.instance.currentUser,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return SignInScreen(
+            showAuthActionSwitch: true,
+            providerConfigs: providerConfigs,
+            headerBuilder: (context, constraints, _) {
+              return Image.asset(
+                Assets.kAppIcon,
+              );
+            },
+          );
+        }
+        authProvider.saveUser();
+
+        return const HomeScreen();
+      },
     );
   }
 }

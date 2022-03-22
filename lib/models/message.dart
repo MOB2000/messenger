@@ -23,18 +23,21 @@ class Message {
       Keys.idTo: idTo,
       Keys.timestamp: timestamp,
       Keys.content: content,
-      Keys.type: type,
+      Keys.type: type.name,
     };
   }
 
-  // TODO: replace DocumentSnapshot with Map<String, dynamic>
   factory Message.fromDocument(DocumentSnapshot doc) {
     String idFrom = doc.get(Keys.idFrom);
     String idTo = doc.get(Keys.idTo);
     String timestamp = doc.get(Keys.timestamp);
     String content = doc.get(Keys.content);
-    // TODO: check how saved in firestore
-    MessageType type = doc.get(Keys.type);
+
+    MessageType type = doc.get(Keys.type) == 'text'
+        ? MessageType.text
+        : doc.get(Keys.type) == 'image'
+            ? MessageType.image
+            : MessageType.sticker;
 
     return Message(
       idFrom: idFrom,

@@ -10,6 +10,7 @@ import 'package:messenger/constants/colors.dart';
 import 'package:messenger/constants/keys.dart';
 import 'package:messenger/constants/strings.dart';
 import 'package:messenger/models/custom_user.dart';
+import 'package:messenger/providers/auth_provider.dart';
 import 'package:messenger/providers/setting_provider.dart';
 import 'package:messenger/widgets/loading_view.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +28,6 @@ class SettingsScreen extends StatelessWidget {
           kSettings,
           style: TextStyle(color: kPrimaryColor),
         ),
-        centerTitle: true,
       ),
       body: const SettingsPageState(),
     );
@@ -45,10 +45,7 @@ class SettingsPageStateState extends State<SettingsPageState> {
   TextEditingController? controllerNickname;
   TextEditingController? controllerAboutMe;
 
-  String id = '';
-  String nickname = '';
-  String aboutMe = '';
-  String photoUrl = '';
+  late CustomUser customUser;
 
   bool isLoading = false;
   File? avatarImageFile;
@@ -57,23 +54,9 @@ class SettingsPageStateState extends State<SettingsPageState> {
   final FocusNode focusNodeNickname = FocusNode();
   final FocusNode focusNodeAboutMe = FocusNode();
 
-  @override
-  void initState() {
-    super.initState();
-    settingProvider = Provider.of<SettingProvider>(context);
-    readLocal();
-  }
-
   void readLocal() {
-    setState(() {
-      id = settingProvider.getPref(Keys.id);
-      nickname = settingProvider.getPref(Keys.nickname);
-      aboutMe = settingProvider.getPref(Keys.aboutMe);
-      photoUrl = settingProvider.getPref(Keys.photoUrl);
-    });
-
-    controllerNickname = TextEditingController(text: nickname);
-    controllerAboutMe = TextEditingController(text: aboutMe);
+    controllerNickname = TextEditingController(text: customUser.nickname);
+    controllerAboutMe = TextEditingController(text: customUser.aboutMe);
   }
 
   Future getImage() async {
@@ -97,22 +80,16 @@ class SettingsPageStateState extends State<SettingsPageState> {
   }
 
   Future uploadFile() async {
-    String fileName = id;
-    UploadTask uploadTask =
-        settingProvider.uploadFile(avatarImageFile!, fileName);
+    String fileName = customUser.id;
+
     try {
-      TaskSnapshot snapshot = await uploadTask;
-      photoUrl = await snapshot.ref.getDownloadURL();
-      CustomUser updateInfo = CustomUser(
-        id: id,
-        photoUrl: photoUrl,
-        nickname: nickname,
-        aboutMe: aboutMe,
-      );
+      TaskSnapshot snapshot =
+          await settingProvider.putFile(fileName, avatarImageFile!);
+      customUser.photoUrl = await snapshot.ref.getDownloadURL();
+
       settingProvider
-          .updateDataFirestore(Keys.pathUserCollection, id, updateInfo.toMap())
+          .updateDataFirestore(Keys.users, customUser.id, customUser.toMap())
           .then((data) async {
-        await settingProvider.setPref(Keys.photoUrl, photoUrl);
         setState(() {
           isLoading = false;
         });
@@ -138,19 +115,10 @@ class SettingsPageStateState extends State<SettingsPageState> {
     setState(() {
       isLoading = true;
     });
-    CustomUser updateInfo = CustomUser(
-      id: id,
-      photoUrl: photoUrl,
-      nickname: nickname,
-      aboutMe: aboutMe,
-    );
-    settingProvider
-        .updateDataFirestore(Keys.pathUserCollection, id, updateInfo.toMap())
-        .then((data) async {
-      await settingProvider.setPref(Keys.nickname, nickname);
-      await settingProvider.setPref(Keys.aboutMe, aboutMe);
-      await settingProvider.setPref(Keys.photoUrl, photoUrl);
 
+    settingProvider
+        .updateDataFirestore(Keys.users, customUser.id, customUser.toMap())
+        .then((data) async {
       setState(() {
         isLoading = false;
       });
@@ -167,6 +135,12 @@ class SettingsPageStateState extends State<SettingsPageState> {
 
   @override
   Widget build(BuildContext context) {
+    settingProvider = Provider.of<SettingProvider>(context);
+    customUser = Provider.of<AuthProvider>(context).user;
+
+    // TODO: set in future builder
+    readLocal();
+
     return Stack(
       children: <Widget>[
         SingleChildScrollView(
@@ -178,11 +152,11 @@ class SettingsPageStateState extends State<SettingsPageState> {
                 child: Container(
                   margin: const EdgeInsets.all(20),
                   child: avatarImageFile == null
-                      ? photoUrl.isNotEmpty
+                      ? customUser.photoUrl.isNotEmpty
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(45),
                               child: Image.network(
-                                photoUrl,
+                                customUser.photoUrl,
                                 fit: BoxFit.cover,
                                 width: 90,
                                 height: 90,
@@ -257,7 +231,7 @@ class SettingsPageStateState extends State<SettingsPageState> {
                         ),
                         controller: controllerNickname,
                         onChanged: (value) {
-                          nickname = value;
+                          customUser.nickname = value;
                         },
                         focusNode: focusNodeNickname,
                       ),
@@ -286,7 +260,7 @@ class SettingsPageStateState extends State<SettingsPageState> {
                         ),
                         controller: controllerAboutMe,
                         onChanged: (value) {
-                          aboutMe = value;
+                          customUser.aboutMe = value;
                         },
                         focusNode: focusNodeAboutMe,
                       ),

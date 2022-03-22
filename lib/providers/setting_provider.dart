@@ -1,37 +1,25 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:messenger/services/fire_storage.dart';
+import 'package:messenger/services/firestore.dart';
 
 class SettingProvider {
-  final SharedPreferences prefs;
-  final FirebaseFirestore firebaseFirestore;
-  final FirebaseStorage firebaseStorage;
+  // TODO set user in this class and save in firestore
 
-  SettingProvider({
-    required this.prefs,
-    required this.firebaseFirestore,
-    required this.firebaseStorage,
-  });
-
-  String getPref(String key) {
-    return prefs.getString(key) ?? '';
-  }
-
-  Future<bool> setPref(String key, String value) async {
-    return await prefs.setString(key, value);
-  }
-
-  UploadTask uploadFile(File image, String fileName) {
-    Reference reference = firebaseStorage.ref().child(fileName);
-    UploadTask uploadTask = reference.putFile(image);
-    return uploadTask;
+  UploadTask putFile(
+    String fileName,
+    File image,
+  ) {
+    return FireStorage.instance.putFile(fileName, image);
   }
 
   Future<void> updateDataFirestore(
-      String collectionPath, String path, Map<String, dynamic> dataNeedUpdate) {
-    return firebaseFirestore
+    String collectionPath,
+    String path,
+    Map<String, dynamic> dataNeedUpdate,
+  ) async {
+    Firestore.instance.firebaseFirestore
         .collection(collectionPath)
         .doc(path)
         .update(dataNeedUpdate);

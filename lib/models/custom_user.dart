@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:messenger/constants/keys.dart';
 
 class CustomUser {
@@ -28,6 +29,24 @@ class CustomUser {
       photoUrl: doc.get(Keys.photoUrl),
       nickname: doc.get(Keys.nickname),
       aboutMe: doc.get(Keys.aboutMe),
+    );
+  }
+
+  factory CustomUser.fromMap(Map<String, dynamic> map) {
+    return CustomUser(
+      id: map[Keys.id],
+      photoUrl: map[Keys.photoUrl],
+      nickname: map[Keys.nickname],
+      aboutMe: map[Keys.aboutMe],
+    );
+  }
+
+  factory CustomUser.fromFirebaseUser(User user) {
+    return CustomUser(
+      id: user.uid,
+      nickname: user.displayName ?? '',
+      photoUrl: user.photoURL ?? '',
+      aboutMe: '',
     );
   }
 }

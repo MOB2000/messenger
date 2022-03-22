@@ -15,7 +15,6 @@ import 'package:messenger/models/chat_page_arguments.dart';
 import 'package:messenger/models/message.dart';
 import 'package:messenger/models/message_type.dart';
 import 'package:messenger/pages/full_photo_screen.dart';
-import 'package:messenger/pages/login_screen.dart';
 import 'package:messenger/providers/auth_provider.dart';
 import 'package:messenger/providers/chat_provider.dart';
 import 'package:messenger/widgets/mime_widget.dart';
@@ -53,14 +52,17 @@ class ChatScreenState extends State<ChatScreen> {
   late AuthProvider authProvider;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print('ChatScreenState.didChangeDependencies');
+  }
+
+  @override
   void initState() {
     super.initState();
-    chatProvider = Provider.of<ChatProvider>(context);
-    authProvider = Provider.of<AuthProvider>(context);
 
     focusNode.addListener(onFocusChange);
     listScrollController.addListener(_scrollListener);
-    readLocal();
   }
 
   _scrollListener() {
@@ -83,11 +85,8 @@ class ChatScreenState extends State<ChatScreen> {
   }
 
   void readLocal() {
-    if (authProvider.getUserFirebaseId()?.isNotEmpty == true) {
-      currentUserId = authProvider.getUserFirebaseId()!;
-    } else {
-      Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
-    }
+    currentUserId = authProvider.user.id;
+
     String peerId = arguments.peerId;
     if (currentUserId.compareTo(peerId) > 0) {
       groupChatId = '$currentUserId-$peerId';
@@ -96,7 +95,7 @@ class ChatScreenState extends State<ChatScreen> {
     }
 
     chatProvider.updateDataFirestore(
-      Keys.pathUserCollection,
+      Keys.users,
       currentUserId,
       {Keys.chattingWith: peerId},
     );
@@ -126,9 +125,9 @@ class ChatScreenState extends State<ChatScreen> {
 
   Future uploadFile() async {
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-    UploadTask uploadTask = chatProvider.uploadFile(imageFile!, fileName);
+
     try {
-      TaskSnapshot snapshot = await uploadTask;
+      TaskSnapshot snapshot = await chatProvider.putFile(imageFile!, fileName);
       imageUrl = await snapshot.ref.getDownloadURL();
       setState(() {
         isLoading = false;
@@ -449,7 +448,7 @@ class ChatScreenState extends State<ChatScreen> {
       });
     } else {
       chatProvider.updateDataFirestore(
-        Keys.pathUserCollection,
+        Keys.users,
         currentUserId,
         {Keys.chattingWith: null},
       );
@@ -463,7 +462,12 @@ class ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    chatProvider = Provider.of<ChatProvider>(context);
+    authProvider = Provider.of<AuthProvider>(context);
     arguments = ModalRoute.of(context)!.settings.arguments as ChatPageArguments;
+
+    // Add in future builder
+    readLocal();
 
     return Scaffold(
       appBar: AppBar(
@@ -471,7 +475,6 @@ class ChatScreenState extends State<ChatScreen> {
           arguments.peerNickname,
           style: const TextStyle(color: kPrimaryColor),
         ),
-        centerTitle: true,
       ),
       body: WillPopScope(
         child: Column(

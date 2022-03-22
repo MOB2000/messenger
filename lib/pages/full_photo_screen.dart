@@ -18,7 +18,6 @@ class FullPhotoScreen extends StatelessWidget {
           kFullPhoto,
           style: TextStyle(color: kPrimaryColor),
         ),
-        centerTitle: true,
       ),
       body: PhotoView(
         imageProvider: NetworkImage(url),

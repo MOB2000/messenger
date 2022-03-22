@@ -5,40 +5,28 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:messenger/constants/keys.dart';
 import 'package:messenger/models/message.dart';
 import 'package:messenger/models/message_type.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:messenger/services/fire_storage.dart';
+import 'package:messenger/services/firestore.dart';
 
 class ChatProvider {
-  final SharedPreferences prefs;
-  final FirebaseFirestore firebaseFirestore;
-  final FirebaseStorage firebaseStorage;
-
-  ChatProvider({
-    required this.firebaseFirestore,
-    required this.prefs,
-    required this.firebaseStorage,
-  });
-
-  String? getPref(String key) {
-    return prefs.getString(key);
+  UploadTask putFile(File image, String fileName) {
+    return FireStorage.instance.putFile(fileName, image);
   }
 
-  UploadTask uploadFile(File image, String fileName) {
-    Reference reference = firebaseStorage.ref().child(fileName);
-    UploadTask uploadTask = reference.putFile(image);
-    return uploadTask;
-  }
-
-  Future<void> updateDataFirestore(String collectionPath, String docPath,
-      Map<String, dynamic> dataNeedUpdate) {
-    return firebaseFirestore
+  Future<void> updateDataFirestore(
+    String collectionPath,
+    String docPath,
+    Map<String, dynamic> dataNeedUpdate,
+  ) async {
+    Firestore.instance.firebaseFirestore
         .collection(collectionPath)
         .doc(docPath)
         .update(dataNeedUpdate);
   }
 
   Stream<QuerySnapshot> getChatStream(String groupChatId, int limit) {
-    return firebaseFirestore
-        .collection(Keys.pathMessageCollection)
+    return Firestore.instance.firebaseFirestore
+        .collection(Keys.messages)
         .doc(groupChatId)
         .collection(groupChatId)
         .orderBy(Keys.timestamp, descending: true)
@@ -46,10 +34,15 @@ class ChatProvider {
         .snapshots();
   }
 
-  void sendMessage(String content, MessageType type, String groupChatId,
-      String currentUserId, String peerId) {
-    DocumentReference documentReference = firebaseFirestore
-        .collection(Keys.pathMessageCollection)
+  void sendMessage(
+    String content,
+    MessageType type,
+    String groupChatId,
+    String currentUserId,
+    String peerId,
+  ) {
+    DocumentReference documentReference = Firestore.instance.firebaseFirestore
+        .collection(Keys.messages)
         .doc(groupChatId)
         .collection(groupChatId)
         .doc(DateTime.now().millisecondsSinceEpoch.toString());

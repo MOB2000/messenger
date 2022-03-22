@@ -5,6 +5,7 @@ const String kMessenger = 'Messenger';
 const String kCancel = 'Cancel';
 const String kDelete = 'Delete';
 const String kSettings = 'Settings';
+const String kProfile = 'Profile';
 const String kUpdate = 'Update';
 const String kNickname = 'Nickname';
 const String kSweetie = 'Sweetie';

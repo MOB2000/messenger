@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:messenger/constants/colors.dart';
+import 'package:messenger/constants/configurations.dart';
 import 'package:messenger/constants/keys.dart';
 import 'package:messenger/constants/strings.dart';
 import 'package:messenger/models/chat_page_arguments.dart';
@@ -14,11 +15,12 @@ import 'package:messenger/pages/chat_screen.dart';
 import 'package:messenger/pages/login_screen.dart';
 import 'package:messenger/pages/settings_screen.dart';
 import 'package:messenger/providers/auth_provider.dart';
-import 'package:messenger/providers/home_provider.dart';
 import 'package:messenger/utils/de_bouncer.dart';
 import 'package:messenger/utils/utilities.dart';
+import 'package:messenger/widgets/exit_dialog.dart';
 import 'package:provider/provider.dart';
 
+// TODO: replace with  users screen and set home screen empty
 class HomeScreen extends StatefulWidget {
   static const routeName = 'HomeScreen';
 
@@ -39,28 +41,13 @@ class HomeScreenState extends State<HomeScreen> {
   String _textSearch = "";
 
   late AuthProvider authProvider;
-  late String currentUserId;
-  late HomeProvider homeProvider;
   final searchDeBouncer = DeBouncer(milliseconds: 300);
   final btnClearController = StreamController<bool>();
   final searchBarTec = TextEditingController();
 
-  final choices = <PopupChoice>[
-    PopupChoice(title: kSettings, icon: Icons.settings),
-    PopupChoice(title: kLogout, icon: Icons.exit_to_app),
-  ];
-
   @override
   void initState() {
     super.initState();
-    authProvider = Provider.of<AuthProvider>(context);
-    homeProvider = Provider.of<HomeProvider>(context);
-
-    if (authProvider.getUserFirebaseId()?.isNotEmpty == true) {
-      currentUserId = authProvider.getUserFirebaseId()!;
-    } else {
-      Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
-    }
     listScrollController.addListener(scrollListener);
   }
 
@@ -80,133 +67,68 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void onItemMenuPress(PopupChoice choice) {
-    if (choice.title == kLogout) {
-      handleSignOut();
-    } else {
-      Navigator.pushNamed(context, SettingsScreen.routeName);
-    }
-  }
-
-  Future<bool> onBackPress() {
-    openDialog();
-    return Future.value(false);
-  }
-
-  Future<void> openDialog() async {
-    switch (await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return SimpleDialog(
-            clipBehavior: Clip.hardEdge,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: EdgeInsets.zero,
-            children: <Widget>[
-              Container(
-                color: kThemeColor,
-                padding: const EdgeInsets.only(bottom: 10, top: 10),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Container(
-                      child: const Icon(
-                        Icons.exit_to_app,
-                        size: 30,
-                        color: Colors.white,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 10),
-                    ),
-                    const Text(
-                      kExitApp,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    const Text(
-                      kAreYouSureToExitApp,
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-              SimpleDialogOption(
-                onPressed: () {
-                  Navigator.pop(context, 0);
-                },
-                child: Row(
-                  children: <Widget>[
-                    Container(
-                      child: const Icon(
-                        Icons.cancel,
-                        color: kPrimaryColor,
-                      ),
-                      margin: const EdgeInsets.only(right: 10),
-                    ),
-                    const Text(
-                      kCancel,
-                      style: TextStyle(
-                          color: kPrimaryColor, fontWeight: FontWeight.bold),
-                    )
-                  ],
-                ),
-              ),
-              SimpleDialogOption(
-                onPressed: () {
-                  Navigator.pop(context, 1);
-                },
-                child: Row(
-                  children: <Widget>[
-                    Container(
-                      child: const Icon(
-                        Icons.check_circle,
-                        color: kPrimaryColor,
-                      ),
-                      margin: const EdgeInsets.only(right: 10),
-                    ),
-                    const Text(
-                      kYes,
-                      style: TextStyle(
-                          color: kPrimaryColor, fontWeight: FontWeight.bold),
-                    )
-                  ],
-                ),
-              ),
-            ],
-          );
-        })) {
+  Future<bool> onWillPop() async {
+    final result = await showDialog(
+      context: context,
+      builder: (BuildContext context) => const ExitDialog(),
+    );
+    switch (result) {
       case 0:
         break;
       case 1:
         exit(0);
     }
+    return false;
   }
 
   Future<void> handleSignOut() async {
-    authProvider.handleSignOut();
+    authProvider.signOut();
     Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
   }
 
   @override
   Widget build(BuildContext context) {
+    authProvider = Provider.of<AuthProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           kHome,
           style: TextStyle(color: kPrimaryColor),
         ),
-        centerTitle: true,
-        actions: <Widget>[buildPopupMenu()],
+        actions: choices.map(
+          (PopupChoice choice) {
+            return PopupMenuItem<PopupChoice>(
+              value: choice,
+              child: IconButton(
+                icon: Icon(
+                  choice.icon,
+                  color: kPrimaryColor,
+                ),
+                onPressed: () {
+                  if (choice.title == kLogout) {
+                    handleSignOut();
+                  } else {
+                    Navigator.pushNamed(context, SettingsScreen.routeName);
+                  }
+                },
+              ),
+            );
+          },
+        ).toList(),
       ),
       body: WillPopScope(
+        onWillPop: onWillPop,
         child: Column(
           children: <Widget>[
             buildSearchBar(),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: homeProvider.getStreamFireStore(
-                    Keys.pathUserCollection, _limit, _textSearch),
+                stream: authProvider.getUsers(
+                  Keys.users,
+                  _limit,
+                  _textSearch,
+                ),
                 builder: (BuildContext context,
                     AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasData) {
@@ -235,7 +157,6 @@ class HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        onWillPop: onBackPress,
       ),
     );
   }
@@ -301,37 +222,10 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget buildPopupMenu() {
-    return PopupMenuButton<PopupChoice>(
-      onSelected: onItemMenuPress,
-      itemBuilder: (BuildContext context) {
-        return choices.map((PopupChoice choice) {
-          return PopupMenuItem<PopupChoice>(
-              value: choice,
-              child: Row(
-                children: <Widget>[
-                  Icon(
-                    choice.icon,
-                    color: kPrimaryColor,
-                  ),
-                  Container(
-                    width: 10,
-                  ),
-                  Text(
-                    choice.title,
-                    style: const TextStyle(color: kPrimaryColor),
-                  ),
-                ],
-              ));
-        }).toList();
-      },
-    );
-  }
-
   Widget buildItem(BuildContext context, DocumentSnapshot? document) {
     if (document != null) {
       CustomUser userChat = CustomUser.fromDocument(document);
-      if (userChat.id == currentUserId) {
+      if (userChat.id == authProvider.user.id) {
         return const SizedBox.shrink();
       } else {
         return Container(
@@ -392,15 +286,19 @@ class HomeScreenState extends State<HomeScreen> {
                           alignment: Alignment.centerLeft,
                           margin: const EdgeInsets.fromLTRB(10, 0, 0, 5),
                         ),
-                        Container(
-                          child: Text(
-                            '$kAboutMe: ${userChat.aboutMe}',
-                            maxLines: 1,
-                            style: const TextStyle(color: kPrimaryColor),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          margin: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                        )
+                        if (userChat.aboutMe.trim().isNotEmpty)
+                          Container(
+                            child: Text(
+                              userChat.aboutMe,
+                              maxLines: 1,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: kPrimaryColor,
+                              ),
+                            ),
+                            alignment: Alignment.centerLeft,
+                            margin: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                          )
                       ],
                     ),
                     margin: const EdgeInsets.only(left: 20),

@@ -20,41 +20,48 @@ class SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(
-      const Duration(seconds: 3),
+      const Duration(seconds: 1),
       checkSignedIn,
     );
   }
 
   void checkSignedIn() async {
-    AuthProvider authProvider = Provider.of<AuthProvider>(context);
-    bool isLoggedIn = await authProvider.isLoggedIn();
-    if (isLoggedIn) {
-      Navigator.pushReplacementNamed(context, HomeScreen.routeName);
-      return;
-    }
-    Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+    AuthProvider authProvider =
+        Provider.of<AuthProvider>(context, listen: false);
+    final routeName = await authProvider.isLoggedIn
+        ? HomeScreen.routeName
+        : LoginScreen.routeName;
+
+    Navigator.pushReplacementNamed(context, routeName);
   }
 
   @override
   Widget build(BuildContext context) {
-    //TODO use mediaQuerySize
-    final mediaQuerySize = MediaQuery.of(context).size;
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             Image.asset(
               Assets.kAppIcon,
-              width: 200,
               height: 100,
+              width: 200,
             ),
             const SizedBox(height: 24),
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
+            const Text(
+              'Welcome to Messenger',
+              style: TextStyle(
+                fontSize: 18,
                 color: kThemeColor,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Best Chatting App',
+              style: TextStyle(
+                fontSize: 12,
+                color: kThemeColor.withAlpha(0x88),
+                fontStyle: FontStyle.italic,
               ),
             ),
           ],

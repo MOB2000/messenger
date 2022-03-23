@@ -8,32 +8,29 @@ import 'package:messenger/services/firestore.dart';
 class AuthProvider extends ChangeNotifier {
   CustomUser get user => FireAuth.instance.user;
 
-  Stream<QuerySnapshot> getUsers(
-    String pathCollection,
-    int limit,
-    String textSearch,
-  ) {
+  Stream<QuerySnapshot> getUsers({
+    required int limit,
+    required String textSearch,
+  }) {
     if (textSearch.isNotEmpty == true) {
       return Firestore.instance.firebaseFirestore
-          .collection(pathCollection)
+          .collection(Keys.users)
           .limit(limit)
           .where(Keys.nickname, isEqualTo: textSearch)
+          .where(Keys.id, isNotEqualTo: user.id)
           .snapshots();
     } else {
       return Firestore.instance.firebaseFirestore
-          .collection(pathCollection)
+          .collection(Keys.users)
           .limit(limit)
+          .where(Keys.id, isNotEqualTo: user.id)
           .snapshots();
     }
   }
 
   Future<bool> get isLoggedIn async => FireAuth.instance.isLoggedIn;
 
-  Future<void> saveUser() async {
-    FireAuth.instance.saveUser();
-  }
+  Future<void> saveUser() async => FireAuth.instance.saveUser();
 
-  Future<void> signOut() async {
-    await FireAuth.instance.signOut();
-  }
+  Future<void> signOut() async => await FireAuth.instance.signOut();
 }

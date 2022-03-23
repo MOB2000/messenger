@@ -2,24 +2,22 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:messenger/constants/colors.dart';
 import 'package:messenger/constants/strings.dart';
-import 'package:messenger/pages/chat_screen.dart';
-import 'package:messenger/pages/full_photo_screen.dart';
-import 'package:messenger/pages/home_screen.dart';
-import 'package:messenger/pages/login_screen.dart';
-import 'package:messenger/pages/settings_screen.dart';
-import 'package:messenger/pages/splash_screen.dart';
 import 'package:messenger/providers/auth_provider.dart';
 import 'package:messenger/providers/chat_provider.dart';
 import 'package:messenger/providers/setting_provider.dart';
+import 'package:messenger/screens/chat_screen.dart';
+import 'package:messenger/screens/full_photo_screen.dart';
+import 'package:messenger/screens/home_screen.dart';
+import 'package:messenger/screens/login_screen.dart';
+import 'package:messenger/screens/settings_screen.dart';
+import 'package:messenger/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  runApp(
-    const Messenger(),
-  );
+  runApp(const Messenger());
 }
 
 // TODO: check internet connection
@@ -32,8 +30,8 @@ class Messenger extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
-        Provider<SettingProvider>(create: (_) => SettingProvider()),
         Provider<ChatProvider>(create: (_) => ChatProvider()),
+        Provider<SettingProvider>(create: (_) => SettingProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

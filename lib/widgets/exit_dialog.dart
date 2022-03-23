@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:messenger/constants/colors.dart';
 import 'package:messenger/constants/strings.dart';
@@ -53,7 +55,7 @@ class ExitDialog extends StatelessWidget {
         ),
         SimpleDialogOption(
           onPressed: () {
-            Navigator.pop(context, 1);
+            exit(0);
           },
           child: Row(
             children: <Widget>[
@@ -74,7 +76,7 @@ class ExitDialog extends StatelessWidget {
         ),
         SimpleDialogOption(
           onPressed: () {
-            Navigator.pop(context, 0);
+            Navigator.pop(context);
           },
           child: Row(
             children: <Widget>[
@@ -88,7 +90,9 @@ class ExitDialog extends StatelessWidget {
               const Text(
                 kCancel,
                 style: TextStyle(
-                    color: kPrimaryColor, fontWeight: FontWeight.bold),
+                  color: kPrimaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
               )
             ],
           ),

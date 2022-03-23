@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:messenger/constants/assets.dart';
 import 'package:messenger/constants/colors.dart';
-import 'package:messenger/pages/home_screen.dart';
-import 'package:messenger/pages/login_screen.dart';
 import 'package:messenger/providers/auth_provider.dart';
+import 'package:messenger/screens/home_screen.dart';
+import 'package:messenger/screens/login_screen.dart';
 import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(
-      const Duration(seconds: 1),
+      const Duration(seconds: 2),
       checkSignedIn,
     );
   }

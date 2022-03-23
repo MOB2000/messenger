@@ -14,9 +14,9 @@ import 'package:messenger/constants/strings.dart';
 import 'package:messenger/models/chat_page_arguments.dart';
 import 'package:messenger/models/message.dart';
 import 'package:messenger/models/message_type.dart';
-import 'package:messenger/pages/full_photo_screen.dart';
 import 'package:messenger/providers/auth_provider.dart';
 import 'package:messenger/providers/chat_provider.dart';
+import 'package:messenger/screens/full_photo_screen.dart';
 import 'package:messenger/widgets/mime_widget.dart';
 import 'package:provider/provider.dart';
 

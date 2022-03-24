@@ -10,6 +10,7 @@ const String kUpdate = 'Update';
 const String kNickname = 'Nickname';
 const String kSweetie = 'Sweetie';
 const String kYes = 'Yes';
+const String kNo = 'No';
 const String kExitApp = 'Exit App';
 const String kAreYouSureToExitApp = 'Are you sure to exit app?';
 const String kAreYouSureToDeleteMessage = 'Are you sure to delete message?';

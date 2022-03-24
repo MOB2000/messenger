@@ -88,7 +88,7 @@ class ExitDialog extends StatelessWidget {
                 margin: const EdgeInsets.only(right: 10),
               ),
               const Text(
-                kCancel,
+                kNo,
                 style: TextStyle(
                   color: kPrimaryColor,
                   fontWeight: FontWeight.bold,

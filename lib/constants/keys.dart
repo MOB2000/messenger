@@ -2,6 +2,7 @@ class Keys {
   Keys._();
   static const kGoogleAppId =
       '984586135320-paove6nhaurtc237j7l6r4fq78dihg39.apps.googleusercontent.com';
+  static const kFacebookClientId = '9784da03af09dea935a667fcb156f58e';
 
   static String kUser = 'user';
   static const users = "users";

@@ -6,4 +6,5 @@ const providerConfigs = <ProviderConfiguration>[
   GoogleProviderConfiguration(
     clientId: Keys.kGoogleAppId,
   ),
+  FacebookProviderConfiguration(clientId: Keys.kFacebookClientId),
 ];

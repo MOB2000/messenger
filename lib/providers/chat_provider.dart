@@ -29,7 +29,7 @@ class ChatProvider {
         .collection(Keys.messages)
         .doc(groupChatId)
         .collection(groupChatId)
-        .doc(message.timestamp)
+        .doc(message.timestamp.millisecondsSinceEpoch.toString())
         .delete();
   }
 
@@ -41,7 +41,7 @@ class ChatProvider {
         .collection(Keys.messages)
         .doc(groupChatId)
         .collection(groupChatId)
-        .doc(message.timestamp)
+        .doc(message.timestamp.millisecondsSinceEpoch.toString())
         .set(message.toMap());
   }
 }

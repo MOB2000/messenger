@@ -4,7 +4,7 @@ import 'package:messenger/constants/strings.dart';
 
 class ChatInput extends StatelessWidget {
   final void Function(String) onSendMessage;
-  final Future<void> Function() onPressedImage;
+  final VoidCallback onPressedImage;
 
   ChatInput({
     Key? key,

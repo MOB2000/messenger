@@ -4,7 +4,16 @@ import 'package:messenger/models/custom_user.dart';
 import 'package:messenger/services/firestore.dart';
 
 class FireAuth {
-  FireAuth._();
+  late CustomUser user;
+
+  FireAuth._() {
+    user = CustomUser(
+      id: '',
+      nickname: '',
+      photoUrl: '',
+      aboutMe: '',
+    );
+  }
 
   static final FireAuth instance = FireAuth._();
 
@@ -12,26 +21,43 @@ class FireAuth {
 
   Future<bool> get isLoggedIn async => firebaseAuth.currentUser != null;
 
-  // TODO: replace with custom user when null add from firebase
-  CustomUser get user => CustomUser.fromFirebaseUser(firebaseAuth.currentUser!);
+  Future initUser() async {
+    await Firestore.instance.firebaseFirestore
+        .collection(Keys.users)
+        .doc(firebaseAuth.currentUser?.uid ?? '')
+        .get()
+        .then((value) {
+      if (value.exists) {
+        user = CustomUser.fromDocument(value);
+      }
+    });
+  }
 
   Future<void> saveUser() async {
     final user = firebaseAuth.currentUser!;
 
-    final cUser = CustomUser.fromFirebaseUser(user);
+    final isExists = await Firestore.instance.firebaseFirestore
+        .collection(Keys.users)
+        .doc(user.uid)
+        .get()
+        .then((value) {
+      if (value.exists) {
+        this.user = CustomUser.fromDocument(value);
+      }
+      return value.exists;
+    });
 
-    final map = cUser.toMap()
-      ..addAll({
-        Keys.joinedAt: DateTime.now().millisecondsSinceEpoch.toString(),
-      });
+    if (isExists) {
+      return;
+    }
+
+    this.user = CustomUser.fromFirebaseUser(user, DateTime.now());
 
     Firestore.instance.firebaseFirestore
         .collection(Keys.users)
         .doc(user.uid)
-        .set(map);
+        .set(this.user.toMap());
   }
 
-  Future<void> signOut() async {
-    await firebaseAuth.signOut();
-  }
+  Future<void> signOut() async => await firebaseAuth.signOut();
 }

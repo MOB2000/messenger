@@ -14,7 +14,6 @@ import 'package:messenger/widgets/loading_widget.dart';
 import 'package:messenger/widgets/search_users_widget.dart';
 import 'package:provider/provider.dart';
 
-// TODO: replace with  users screen and set home screen empty
 class HomeScreen extends StatefulWidget {
   static const routeName = 'HomeScreen';
 
@@ -27,20 +26,7 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   late AuthProvider authProvider;
 
-  final ScrollController listScrollController = ScrollController();
-  int _limit = 20;
-  final int _limitIncrement = 20;
   String _textSearch = '';
-
-  void scrollListener() {
-    if (listScrollController.offset >=
-            listScrollController.position.maxScrollExtent &&
-        !listScrollController.position.outOfRange) {
-      setState(() {
-        _limit += _limitIncrement;
-      });
-    }
-  }
 
   Future<bool> onWillPop() async {
     await showDialog(
@@ -57,15 +43,8 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    listScrollController.addListener(scrollListener);
-  }
-
-  @override
   Widget build(BuildContext context) {
     authProvider = Provider.of<AuthProvider>(context);
-    authProvider.saveUser();
 
     return Scaffold(
       appBar: AppBar(
@@ -101,10 +80,7 @@ class HomeScreenState extends State<HomeScreen> {
             ),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: authProvider.getUsers(
-                  textSearch: _textSearch,
-                  limit: _limit,
-                ),
+                stream: authProvider.getUsers(_textSearch),
                 builder: (
                   BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot,
@@ -122,7 +98,6 @@ class HomeScreenState extends State<HomeScreen> {
                       itemBuilder: (context, index) => FriendWidget(
                         friend: CustomUser.fromDocument(friends[index]),
                       ),
-                      controller: listScrollController,
                     );
                   }
                   return const LoadingWidget();

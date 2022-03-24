@@ -8,21 +8,16 @@ import 'package:messenger/services/firestore.dart';
 class AuthProvider extends ChangeNotifier {
   CustomUser get user => FireAuth.instance.user;
 
-  Stream<QuerySnapshot> getUsers({
-    required int limit,
-    required String textSearch,
-  }) {
+  Stream<QuerySnapshot> getUsers(String textSearch) {
     if (textSearch.isNotEmpty == true) {
       return Firestore.instance.firebaseFirestore
           .collection(Keys.users)
-          .limit(limit)
           .where(Keys.nickname, isEqualTo: textSearch)
           .where(Keys.id, isNotEqualTo: user.id)
           .snapshots();
     } else {
       return Firestore.instance.firebaseFirestore
           .collection(Keys.users)
-          .limit(limit)
           .where(Keys.id, isNotEqualTo: user.id)
           .snapshots();
     }

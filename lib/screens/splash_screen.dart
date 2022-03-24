@@ -56,11 +56,11 @@ class SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Text(
+            const Text(
               'Best Chatting App',
               style: TextStyle(
                 fontSize: 12,
-                color: kThemeColor.withAlpha(0x88),
+                color: kThemeColor,
                 fontStyle: FontStyle.italic,
               ),
             ),

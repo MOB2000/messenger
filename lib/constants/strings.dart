@@ -12,6 +12,7 @@ const String kSweetie = 'Sweetie';
 const String kYes = 'Yes';
 const String kExitApp = 'Exit App';
 const String kAreYouSureToExitApp = 'Are you sure to exit app?';
+const String kAreYouSureToDeleteMessage = 'Are you sure to delete message?';
 const String kNoUsers = 'No Users';
 const String kSearchNickname =
     'Search nickname (you have to type exactly string)';
@@ -21,6 +22,7 @@ const String kSignInWithGoogle = 'Sign in with Google';
 const String kSignInFail = 'Sign in fail';
 const String kSignInCanceled = 'Sign in canceled';
 const String kSignInSuccess = 'Sign in success';
+const String kEnterValue = 'Enter Value';
 const String kLogout = 'Log out';
 const String kUploadSuccess = 'Upload success';
 const String kUpdateSuccess = 'Update success';

@@ -5,7 +5,6 @@ class DeleteDialog extends StatelessWidget {
   final String title;
   final void Function()? onDelete;
 
-  // TODO: delete message on long press
   const DeleteDialog({
     Key? key,
     required this.title,

@@ -20,8 +20,6 @@ void main() async {
   runApp(const Messenger());
 }
 
-// TODO: check internet connection
-// TODO: show progress dialog when uploading image
 class Messenger extends StatelessWidget {
   const Messenger({Key? key}) : super(key: key);
 

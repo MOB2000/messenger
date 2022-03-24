@@ -5,8 +5,7 @@ import 'package:messenger/models/message_type.dart';
 class Message {
   String idFrom;
   String idTo;
-  //TODO: convert to dateTime
-  String timestamp;
+  DateTime timestamp;
   String content;
   MessageType type;
 
@@ -22,29 +21,25 @@ class Message {
     return <String, dynamic>{
       Keys.idFrom: idFrom,
       Keys.idTo: idTo,
-      Keys.timestamp: timestamp,
+      Keys.timestamp: timestamp.millisecondsSinceEpoch.toString(),
       Keys.content: content,
       Keys.type: type.name,
     };
   }
 
   factory Message.fromDocument(DocumentSnapshot doc) {
-    String idFrom = doc.get(Keys.idFrom);
-    String idTo = doc.get(Keys.idTo);
-    String timestamp = doc.get(Keys.timestamp);
-    String content = doc.get(Keys.content);
-
-    MessageType type = doc.get(Keys.type) == 'text'
+    final type = doc.get(Keys.type) == 'text'
         ? MessageType.text
         : doc.get(Keys.type) == 'image'
             ? MessageType.image
             : throw Exception();
 
     return Message(
-      idFrom: idFrom,
-      idTo: idTo,
-      timestamp: timestamp,
-      content: content,
+      idFrom: doc.get(Keys.idFrom),
+      idTo: doc.get(Keys.idTo),
+      timestamp: DateTime.fromMillisecondsSinceEpoch(
+          int.parse(doc.get(Keys.timestamp))),
+      content: doc.get(Keys.content),
       type: type,
     );
   }

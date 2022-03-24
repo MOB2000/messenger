@@ -101,9 +101,7 @@ class MyMessageWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 10, top: 5, bottom: 15),
             child: Text(
-              DateFormat('dd MMM kk:mm').format(
-                  DateTime.fromMillisecondsSinceEpoch(
-                      int.parse(messageChat.timestamp))),
+              DateFormat('dd MMM kk:mm').format(messageChat.timestamp),
               style: const TextStyle(
                   color: kGreyColor, fontSize: 12, fontStyle: FontStyle.italic),
             ),

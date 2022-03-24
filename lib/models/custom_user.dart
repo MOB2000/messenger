@@ -26,14 +26,14 @@ class CustomUser {
 
   factory CustomUser.fromDocument(DocumentSnapshot doc) {
     return CustomUser(
-      id: doc.id,
+      id: doc.get(Keys.id),
       photoUrl: doc.get(Keys.photoUrl),
       nickname: doc.get(Keys.nickname),
       aboutMe: doc.get(Keys.aboutMe),
     );
   }
 
-  factory CustomUser.fromFirebaseUser(User user) {
+  factory CustomUser.fromFirebaseUser(User user, DateTime joinedAt) {
     return CustomUser(
       id: user.uid,
       nickname: user.displayName ?? '',

@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
 class ImagePick {
-//   TODO:
-
   ImagePick._();
 
   static ImagePick instance = ImagePick._();

@@ -12,6 +12,7 @@ import 'package:messenger/models/message_type.dart';
 import 'package:messenger/providers/auth_provider.dart';
 import 'package:messenger/providers/chat_provider.dart';
 import 'package:messenger/services/image_pick.dart';
+import 'package:messenger/utils/utilities.dart';
 import 'package:messenger/widgets/chat_input.dart';
 import 'package:messenger/widgets/loading_widget.dart';
 import 'package:messenger/widgets/message_widget.dart';
@@ -27,54 +28,57 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> {
-  late String currentUserId;
+  final _scrollController = ScrollController();
 
-  String groupChatId = "";
-
-  File? imageFile;
-  bool isLoading = false;
-  String imageUrl = "";
-
-  void getChatGroupId(String currentUserId, String peerId) {
+  String getChatGroupId(String currentUserId, String peerId) {
     if (currentUserId.compareTo(peerId) > 0) {
-      groupChatId = '$currentUserId-$peerId';
+      return '$currentUserId-$peerId';
     } else {
-      groupChatId = '$peerId-$currentUserId';
+      return '$peerId-$currentUserId';
     }
   }
 
   Future<void> pickImageGallery(
-      ChatProvider chatProvider, String peerId) async {
+    ChatProvider chatProvider,
+    String userId,
+    String peerId,
+  ) async {
     final imageFile = await ImagePick.instance.pickImageGallery();
+
     if (imageFile != null) {
-      uploadFile(chatProvider, peerId);
+      showWaitingDialog(
+        context,
+        () async {
+          await uploadImage(chatProvider, userId, imageFile, peerId);
+        },
+      );
     }
   }
 
-  Future uploadFile(ChatProvider chatProvider, String peerId) async {
+  Future uploadImage(
+    ChatProvider chatProvider,
+    String senderId,
+    File imageFile,
+    String peerId,
+  ) async {
     final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-    setState(() {
-      isLoading = true;
-    });
+
     try {
-      final snapshot = await chatProvider.putFile(imageFile!, fileName);
-      imageUrl = await snapshot.ref.getDownloadURL();
-      onSendMessage(chatProvider, imageUrl, MessageType.image, peerId);
+      final snapshot = await chatProvider.putFile(imageFile, fileName);
+      final imageUrl = await snapshot.ref.getDownloadURL();
+      sendMessage(chatProvider, senderId, imageUrl, MessageType.image, peerId);
     } catch (e) {
       Fluttertoast.showToast(msg: e.toString());
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 
-  void onSendMessage(
+  Future<void> sendMessage(
     ChatProvider chatProvider,
+    String currentUserId,
     String content,
     MessageType type,
     String peerId,
-  ) {
+  ) async {
     if (content.trim().isEmpty) {
       Fluttertoast.showToast(msg: kNothingToSend, backgroundColor: kGreyColor);
       return;
@@ -83,13 +87,13 @@ class ChatScreenState extends State<ChatScreen> {
     final message = Message(
       idFrom: currentUserId,
       idTo: peerId,
-      timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
+      timestamp: DateTime.now(),
       content: content,
       type: type,
     );
 
     chatProvider.sendMessage(
-      groupChatId,
+      getChatGroupId(currentUserId, peerId),
       message,
     );
   }
@@ -115,7 +119,9 @@ class ChatScreenState extends State<ChatScreen> {
         children: <Widget>[
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: chatProvider.getChatStream(groupChatId),
+              stream: chatProvider.getChatStream(
+                getChatGroupId(authProvider.user.id, arguments.peerId),
+              ),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   final messages = snapshot.data!.docs;
@@ -125,8 +131,11 @@ class ChatScreenState extends State<ChatScreen> {
                   return ListView.builder(
                     padding: const EdgeInsets.all(10),
                     itemCount: messages.length,
+                    controller: _scrollController,
                     itemBuilder: (context, index) => MessageWidget(
                       index: index,
+                      chatGroupId: getChatGroupId(
+                          authProvider.user.id, arguments.peerId),
                       messageChat: Message.fromDocument(messages[index]),
                       friendPhotoUrl: arguments.peerAvatar,
                     ),
@@ -138,19 +147,36 @@ class ChatScreenState extends State<ChatScreen> {
             ),
           ),
           ChatInput(
-            onSendMessage: (value) {
-              onSendMessage(
+            onSendMessage: (value) async {
+              await sendMessage(
                 chatProvider,
+                authProvider.user.id,
                 value,
                 MessageType.text,
                 arguments.peerId,
               );
+
+              scrollToEnd();
             },
-            onPressedImage: () =>
-                pickImageGallery(chatProvider, arguments.peerId),
+            onPressedImage: () {
+              pickImageGallery(
+                chatProvider,
+                authProvider.user.id,
+                arguments.peerId,
+              );
+              scrollToEnd();
+            },
           ),
         ],
       ),
+    );
+  }
+
+  void scrollToEnd() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      curve: Curves.easeOut,
+      duration: const Duration(milliseconds: 500),
     );
   }
 }

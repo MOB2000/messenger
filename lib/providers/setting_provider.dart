@@ -5,8 +5,6 @@ import 'package:messenger/services/fire_storage.dart';
 import 'package:messenger/services/firestore.dart';
 
 class SettingProvider {
-  // TODO set user in this class and save in firestore
-
   UploadTask putFile(
     String fileName,
     File image,
@@ -19,6 +17,7 @@ class SettingProvider {
     String path,
     Map<String, dynamic> dataNeedUpdate,
   ) async {
+    print(path.length);
     Firestore.instance.firebaseFirestore
         .collection(collectionPath)
         .doc(path)

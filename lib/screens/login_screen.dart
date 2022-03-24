@@ -21,16 +21,12 @@ class LoginScreenState extends State<LoginScreen> {
       providerConfigs: providerConfigs,
       actions: <FlutterFireUIAction>[
         AuthStateChangeAction<SignedIn>(
-          (context, state) {
-            Navigator.pushReplacementNamed(context, HomeScreen.routeName);
-          },
+          (context, state) =>
+              Navigator.pushReplacementNamed(context, HomeScreen.routeName),
         ),
       ],
-      headerBuilder: (context, constraints, shrinkOffset) {
-        return Image.asset(
-          Assets.kAppIcon,
-        );
-      },
+      headerBuilder: (context, constraints, shrinkOffset) =>
+          Image.asset(Assets.kAppIcon),
     );
   }
 }

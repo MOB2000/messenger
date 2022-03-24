@@ -5,6 +5,7 @@ import 'package:messenger/models/message_type.dart';
 class Message {
   String idFrom;
   String idTo;
+  //TODO: convert to dateTime
   String timestamp;
   String content;
   MessageType type;
@@ -37,7 +38,7 @@ class Message {
         ? MessageType.text
         : doc.get(Keys.type) == 'image'
             ? MessageType.image
-            : MessageType.sticker;
+            : throw Exception();
 
     return Message(
       idFrom: idFrom,

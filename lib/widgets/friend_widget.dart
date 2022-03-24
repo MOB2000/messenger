@@ -4,6 +4,7 @@ import 'package:messenger/models/chat_page_arguments.dart';
 import 'package:messenger/models/custom_user.dart';
 import 'package:messenger/screens/chat_screen.dart';
 import 'package:messenger/utils/utilities.dart';
+import 'package:messenger/widgets/profile_image.dart';
 
 class FriendWidget extends StatelessWidget {
   final CustomUser friend;
@@ -19,47 +20,11 @@ class FriendWidget extends StatelessWidget {
       child: TextButton(
         child: Row(
           children: <Widget>[
-            Material(
-              child: friend.photoUrl.isNotEmpty
-                  ? Image.network(
-                      friend.photoUrl,
-                      fit: BoxFit.cover,
-                      width: 50,
-                      height: 50,
-                      loadingBuilder: (BuildContext context, Widget child,
-                          ImageChunkEvent? loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: kThemeColor,
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, object, stackTrace) {
-                        return const Icon(
-                          Icons.account_circle,
-                          size: 50,
-                          color: kGreyColor,
-                        );
-                      },
-                    )
-                  : const Icon(
-                      Icons.account_circle,
-                      size: 50,
-                      color: kGreyColor,
-                    ),
-              borderRadius: const BorderRadius.all(Radius.circular(25)),
-              clipBehavior: Clip.hardEdge,
+            ProfileImage(
+              photoUrl: friend.photoUrl,
+              size: 50,
             ),
-            Flexible(
+            Expanded(
               child: Container(
                 child: Column(
                   children: <Widget>[
@@ -93,9 +58,8 @@ class FriendWidget extends StatelessWidget {
           ],
         ),
         onPressed: () {
-          if (Utilities.isKeyboardShowing()) {
-            Utilities.closeKeyboard(context);
-          }
+          Utilities.closeKeyboard(context);
+
           Navigator.pushNamed(
             context,
             ChatScreen.routeName,
@@ -115,7 +79,8 @@ class FriendWidget extends StatelessWidget {
           ),
         ),
       ),
-      margin: const EdgeInsets.only(bottom: 10, left: 5, right: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 10)
+          .copyWith(top: 0),
     );
   }
 }

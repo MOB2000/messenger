@@ -18,29 +18,17 @@ class FireAuth {
   Future<void> saveUser() async {
     final user = firebaseAuth.currentUser!;
 
-    final result = await Firestore.instance.firebaseFirestore
+    final cUser = CustomUser.fromFirebaseUser(user);
+
+    final map = cUser.toMap()
+      ..addAll({
+        Keys.joinedAt: DateTime.now().millisecondsSinceEpoch.toString(),
+      });
+
+    Firestore.instance.firebaseFirestore
         .collection(Keys.users)
-        .where(Keys.id, isEqualTo: user.uid)
-        .get();
-
-    final documents = result.docs;
-
-    if (documents.isEmpty) {
-      final cUser = CustomUser.fromFirebaseUser(user);
-      Firestore.instance.firebaseFirestore
-          .collection(Keys.users)
-          .doc(user.uid)
-          .set(
-            cUser.toMap()
-              ..addAll(
-                {
-                  Keys.createdAt:
-                      DateTime.now().millisecondsSinceEpoch.toString(),
-                  Keys.chattingWith: null,
-                },
-              ),
-          );
-    }
+        .doc(user.uid)
+        .set(map);
   }
 
   Future<void> signOut() async {

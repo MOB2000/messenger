@@ -10,8 +10,7 @@ class Keys {
   static const aboutMe = "aboutMe";
   static const photoUrl = "photoUrl";
   static const id = "id";
-  static const chattingWith = "chattingWith";
-  static const createdAt = "createdAt";
+  static const joinedAt = "joinedAt";
   static const idFrom = "idFrom";
   static const idTo = "idTo";
   static const timestamp = "timestamp";

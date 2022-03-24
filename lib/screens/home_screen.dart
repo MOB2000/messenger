@@ -10,7 +10,7 @@ import 'package:messenger/screens/login_screen.dart';
 import 'package:messenger/screens/settings_screen.dart';
 import 'package:messenger/widgets/exit_dialog.dart';
 import 'package:messenger/widgets/friend_widget.dart';
-import 'package:messenger/widgets/loading_view.dart';
+import 'package:messenger/widgets/loading_widget.dart';
 import 'package:messenger/widgets/search_users_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -25,14 +25,36 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  HomeScreenState({Key? key});
-
   late AuthProvider authProvider;
 
   final ScrollController listScrollController = ScrollController();
   int _limit = 20;
   final int _limitIncrement = 20;
   String _textSearch = '';
+
+  void scrollListener() {
+    if (listScrollController.offset >=
+            listScrollController.position.maxScrollExtent &&
+        !listScrollController.position.outOfRange) {
+      setState(() {
+        _limit += _limitIncrement;
+      });
+    }
+  }
+
+  Future<bool> onWillPop() async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) => const ExitDialog(),
+    );
+
+    return false;
+  }
+
+  Future<void> signOut() async {
+    authProvider.signOut();
+    Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
+  }
 
   @override
   void initState() {
@@ -48,7 +70,7 @@ class HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(kHome),
-        actions: [
+        actions: <Widget>[
           IconButton(
             icon: const Icon(
               Icons.perm_identity,
@@ -95,14 +117,15 @@ class HomeScreenState extends State<HomeScreen> {
                       );
                     }
                     return ListView.builder(
+                      itemCount: friends.length,
                       padding: const EdgeInsets.all(10),
                       itemBuilder: (context, index) => FriendWidget(
-                          friend: CustomUser.fromDocument(friends[index])),
-                      itemCount: friends.length,
+                        friend: CustomUser.fromDocument(friends[index]),
+                      ),
                       controller: listScrollController,
                     );
                   }
-                  return const LoadingView();
+                  return const LoadingWidget();
                 },
               ),
             ),
@@ -110,29 +133,5 @@ class HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-
-  void scrollListener() {
-    if (listScrollController.offset >=
-            listScrollController.position.maxScrollExtent &&
-        !listScrollController.position.outOfRange) {
-      setState(() {
-        _limit += _limitIncrement;
-      });
-    }
-  }
-
-  Future<bool> onWillPop() async {
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) => const ExitDialog(),
-    );
-
-    return false;
-  }
-
-  Future<void> signOut() async {
-    authProvider.signOut();
-    Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
   }
 }

@@ -1,0 +1,44 @@
+name: messenger
+description: A new Flutter project.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.5 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  provider:
+  firebase_core:
+  firebase_auth:
+  google_sign_in:
+  cloud_firestore:
+  firebase_storage:
+  intl:
+  shared_preferences:
+  image_picker:
+  cached_network_image:
+  photo_view:
+  fluttertoast:
+  firebase_ui_auth: ^1.6.2
+  flutter_facebook_auth:
+  firebase_ui_oauth_google: ^1.2.7
+  firebase_ui_oauth_facebook: ^1.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_icons:
+  image_path: "assets/images/logo.png"
+  android: true
+  ios: true
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
